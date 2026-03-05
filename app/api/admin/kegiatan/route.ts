@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 
-
-const prisma = new PrismaClient()
 const BUCKET = "assets_sdkOelneke"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+function getSupabase() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 function extractStoragePath(url: string): string | null {
   try {
@@ -28,10 +26,11 @@ function extractStoragePath(url: string): string | null {
 async function deleteFromStorage(url?: string | null) {
   if (!url) return
   const path = extractStoragePath(url)
-  if (path) await supabase.storage.from(BUCKET).remove([path])
+  if (path) await getSupabase().storage.from(BUCKET).remove([path])
 }
 
 async function uploadFile(file: File, folder: string): Promise<string> {
+  const supabase = getSupabase()
   const buffer = Buffer.from(await file.arrayBuffer())
   const safeName = file.name.replace(/\s+/g, "-").toLowerCase()
   const storagePath = `${folder}/${folder}-${Date.now()}-${safeName}`
@@ -46,8 +45,6 @@ async function uploadFile(file: File, folder: string): Promise<string> {
   return data.publicUrl
 }
 
-// ─── GET ALL ─────────────────────────────────────────────────────────────────
-
 export async function GET() {
   try {
     const kegiatan = await prisma.kegiatan.findMany({
@@ -59,8 +56,6 @@ export async function GET() {
     return NextResponse.json({ error: "Gagal mengambil data kegiatan" }, { status: 500 })
   }
 }
-
-// ─── CREATE ──────────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
@@ -80,7 +75,7 @@ export async function POST(req: Request) {
       },
     })
 
-    revalidatePath("/kegiatan")  // ← tambah di sini, setelah create berhasil
+    revalidatePath("/kegiatan")
     revalidatePath("/")
 
     return NextResponse.json(kegiatan, { status: 201 })
@@ -89,8 +84,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Gagal menyimpan kegiatan" }, { status: 500 })
   }
 }
-
-// ─── UPDATE ──────────────────────────────────────────────────────────────────
 
 export async function PUT(req: Request) {
   try {
@@ -101,7 +94,6 @@ export async function PUT(req: Request) {
     let thumbnailUrl: string | null = data.thumbnail ?? null
 
     if (file) {
-      // Hapus thumbnail lama sebelum upload baru
       await deleteFromStorage(data.thumbnail)
       thumbnailUrl = await uploadFile(file, "kegiatan")
     }
@@ -117,7 +109,7 @@ export async function PUT(req: Request) {
       },
     })
 
-    revalidatePath("/kegiatan")  // ← tambah di sini, setelah create berhasil
+    revalidatePath("/kegiatan")
     revalidatePath("/")
 
     return NextResponse.json(updated)
@@ -127,8 +119,6 @@ export async function PUT(req: Request) {
   }
 }
 
-// ─── DELETE ──────────────────────────────────────────────────────────────────
-
 export async function DELETE(req: Request) {
   try {
     const { id } = await req.json()
@@ -137,7 +127,7 @@ export async function DELETE(req: Request) {
     await deleteFromStorage(kegiatan?.thumbnail)
     await prisma.kegiatan.delete({ where: { id } })
 
-    revalidatePath("/kegiatan")  // ← tambah di sini, setelah create berhasil
+    revalidatePath("/kegiatan")
     revalidatePath("/")
 
     return NextResponse.json({ success: true })

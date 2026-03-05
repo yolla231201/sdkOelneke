@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { createClient } from "@supabase/supabase-js"
 
-const prisma = new PrismaClient()
 const BUCKET = "assets_sdkOelneke"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+function getSupabase() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 function extractStoragePath(url: string): string | null {
   try {
@@ -26,10 +25,11 @@ function extractStoragePath(url: string): string | null {
 async function deleteFromStorage(url?: string | null) {
   if (!url) return
   const path = extractStoragePath(url)
-  if (path) await supabase.storage.from(BUCKET).remove([path])
+  if (path) await getSupabase().storage.from(BUCKET).remove([path])
 }
 
 async function uploadFile(file: File, folder: string): Promise<string> {
+  const supabase = getSupabase()
   const buffer = Buffer.from(await file.arrayBuffer())
   const safeName = file.name.replace(/\s+/g, "-").toLowerCase()
   const storagePath = `${folder}/${folder}-${Date.now()}-${safeName}`
@@ -51,8 +51,6 @@ function generateSlug(judul: string): string {
     .trim()
     .replace(/\s+/g, "-")
 }
-
-// ─── GET ALL ─────────────────────────────────────────────────────────────────
 
 export async function GET(req: Request) {
   try {
@@ -76,8 +74,6 @@ export async function GET(req: Request) {
   }
 }
 
-// ─── CREATE ──────────────────────────────────────────────────────────────────
-
 export async function POST(req: Request) {
   try {
     const formData = await req.formData()
@@ -88,7 +84,6 @@ export async function POST(req: Request) {
 
     const slug = data.slug || generateSlug(data.judul)
 
-    // Cek slug unik
     const existing = await prisma.berita.findUnique({ where: { slug } })
     if (existing) {
       return NextResponse.json({ error: "Slug sudah digunakan, gunakan slug lain" }, { status: 400 })
@@ -114,8 +109,6 @@ export async function POST(req: Request) {
   }
 }
 
-// ─── UPDATE ──────────────────────────────────────────────────────────────────
-
 export async function PUT(req: Request) {
   try {
     const formData = await req.formData()
@@ -129,7 +122,6 @@ export async function PUT(req: Request) {
       thumbnailUrl = await uploadFile(file, "berita")
     }
 
-    // Cek slug unik (kecuali milik diri sendiri)
     if (data.slug) {
       const existing = await prisma.berita.findFirst({
         where: { slug: data.slug, NOT: { id: data.id } },
@@ -158,8 +150,6 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "Gagal update berita" }, { status: 500 })
   }
 }
-
-// ─── DELETE ──────────────────────────────────────────────────────────────────
 
 export async function DELETE(req: Request) {
   try {
