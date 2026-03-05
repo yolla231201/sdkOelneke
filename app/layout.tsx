@@ -1,13 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from "react-hot-toast"
+import { prisma } from "@/lib/prisma"
 
 async function getSetting() {
   try {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-    const res = await fetch(`${base}/api/setting`, { next: { revalidate: 3600 } })
-    if (!res.ok) return null
-    return res.json()
+    return await prisma.settings.findUnique({ where: { id: 1 } })
   } catch {
     return null
   }
@@ -16,12 +14,9 @@ async function getSetting() {
 export async function generateMetadata(): Promise<Metadata> {
   const setting = await getSetting()
 
-  const title = setting?.schoolName ?? 'Website Sekolah'
-  const description = setting?.tagline ?? 'Website Resmi Sekolah'
-
   return {
-    title,
-    description,
+    title: setting?.schoolName ?? 'Website Sekolah',
+    description: setting?.tagline ?? 'Website Resmi Sekolah',
   }
 }
 
