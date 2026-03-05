@@ -7,6 +7,7 @@ import {
 import Button from "@/components/ui/Button"
 import SectionTitle from "@/components/ui/SectionTitle"
 import { Card, CardContent } from "@/components/ui/Card"
+import { prisma } from "@/lib/prisma"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,7 +29,7 @@ type Berita = {
   slug: string
   deskripsi: string | null
   thumbnail: string | null
-  createdAt: string
+  createdAt: Date
   author: { name: string }
 }
 
@@ -49,28 +50,48 @@ type Guru = {
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
+// Hapus fungsi getData yang lama, ganti dengan ini
 async function getData() {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-
-  const [settingRes, beritaRes, kegiatanRes, guruRes] = await Promise.all([
-    fetch(`${base}/api/setting`, { cache: "no-store" }),  // ← ubah ini
-    fetch(`${base}/api/berita?limit=3`, { next: { revalidate: 60 } }),
-    fetch(`${base}/api/kegiatan?limit=4`, { next: { revalidate: 60 } }),
-    fetch(`${base}/api/guru?limit=4`, { next: { revalidate: 3600 } }),
-  ])
-
-  const [setting, berita, kegiatan, guru] = await Promise.all([
-    settingRes.json(),
-    beritaRes.json(),
-    kegiatanRes.json(),
-    guruRes.json(),
+  const [setting, beritaList, kegiatanList, guruList] = await Promise.all([
+    prisma.settings.findUnique({
+      where: { id: 1 },
+      select: {
+        schoolName: true, shortName: true, tagline: true,
+        founded: true, akreditasi: true, siswaAktif: true,
+        prestasi: true, logo: true, heroImage: true,
+      },
+    }),
+    prisma.berita.findMany({
+      where: { status: "PUBLISHED" },
+      select: {
+        id: true, judul: true, slug: true,
+        deskripsi: true, thumbnail: true, createdAt: true,
+        author: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
+    prisma.kegiatan.findMany({
+      select: { id: true, judul: true, thumbnail: true, tanggal: true, lokasi: true },
+      orderBy: { tanggal: "desc" },
+      take: 4,
+    }),
+    prisma.guru.findMany({
+      select: { id: true, nama: true, jabatan: true, foto: true },
+      orderBy: { urutan: "asc" },
+      take: 4,
+    }),
   ])
 
   return {
-    setting: setting as Setting,
-    beritaList: berita as Berita[],
-    kegiatanList: kegiatan as Kegiatan[],
-    guruList: guru as Guru[],
+    setting: setting ?? {
+      schoolName: "Nama Sekolah", shortName: null, tagline: null,
+      founded: null, akreditasi: null, siswaAktif: null,
+      prestasi: null, logo: null, heroImage: null,
+    },
+    beritaList,
+    kegiatanList,
+    guruList,
   }
 }
 

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ChevronRight, MapPin, Phone, Mail, Clock, Send } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
+import { prisma } from "@/lib/prisma"
 
 type Setting = {
   address: string | null
@@ -10,10 +11,15 @@ type Setting = {
 }
 
 async function getSetting(): Promise<Setting> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/setting`, { next: { revalidate: 3600 } })
-  if (!res.ok) return { address: null, phone: null, email: null }
-  return res.json()
+  const setting = await prisma.settings.findUnique({
+    where: { id: 1 },
+    select: {
+      address: true,
+      phone: true,
+      email: true,
+    },
+  })
+  return setting ?? { address: null, phone: null, email: null }
 }
 
 export default async function KontakPage() {

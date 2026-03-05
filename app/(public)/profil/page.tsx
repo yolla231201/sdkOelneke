@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ChevronRight, Eye, Target, History, MapPin, CheckCircle2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/Card"
 import SectionTitle from "@/components/ui/SectionTitle"
+import { prisma } from "@/lib/prisma"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -21,10 +22,22 @@ type Setting = {
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
 async function getSetting(): Promise<Setting> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/setting`, { next: { revalidate: 3600 } })
-  if (!res.ok) return { schoolName: "-", shortName: null, tagline: null, founded: null, npsn: null, akreditasi: null, address: null, visi: null, misi: null, sejarah: null }
-  return res.json()
+  const setting = await prisma.settings.findUnique({
+    where: { id: 1 },
+    select: {
+      schoolName: true,
+      shortName: true,
+      tagline: true,
+      founded: true,
+      npsn: true,
+      akreditasi: true,
+      address: true,
+      visi: true,
+      misi: true,
+      sejarah: true,
+    },
+  })
+  return setting ?? { schoolName: '' ,shortName: null, tagline: null, founded: null, npsn: null, akreditasi: null, address: null, visi: null, misi: null, sejarah: null   }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

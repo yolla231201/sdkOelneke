@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { CalendarDays, User, ArrowLeft } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -12,8 +13,8 @@ type BeritaDetail = {
   deskripsi: string | null
   konten: string
   thumbnail: string | null
-  publishedAt: string | null
-  createdAt: string
+  publishedAt: Date | null  // ← Date bukan string
+  createdAt: Date           // ← Date bukan string
   author: { name: string }
 }
 
@@ -22,29 +23,43 @@ type BeritaRelated = {
   judul: string
   slug: string
   thumbnail: string | null
-  publishedAt: string | null
-  createdAt: string
+  publishedAt: Date | null  // ← Date bukan string
+  createdAt: Date           // ← Date bukan string
 }
 
 // ─── Data Fetching ────────────────────────────────────────────────────────────
 
 async function getBerita(slug: string): Promise<BeritaDetail | null> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/berita/${slug}`, {
-    next: { revalidate: 60 },
+  return await prisma.berita.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    select: {
+      id: true,
+      judul: true,
+      slug: true,
+      deskripsi: true,
+      konten: true,
+      thumbnail: true,
+      publishedAt: true,
+      createdAt: true,
+      author: { select: { name: true } },
+    },
   })
-  if (!res.ok) return null
-  return res.json()
 }
 
 async function getRelated(currentId: number): Promise<BeritaRelated[]> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/berita?limit=4`, {
-    next: { revalidate: 60 },
+  return await prisma.berita.findMany({
+    where: { status: "PUBLISHED", id: { not: currentId } },
+    select: {
+      id: true,
+      judul: true,
+      slug: true,
+      thumbnail: true,
+      publishedAt: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 3,
   })
-  if (!res.ok) return []
-  const list: BeritaRelated[] = await res.json()
-  return list.filter((b) => b.id !== currentId).slice(0, 3)
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

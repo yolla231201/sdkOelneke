@@ -3,21 +3,29 @@ import Link from "next/link"
 import { CalendarDays, MapPin, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/Card"
 import SectionTitle from "@/components/ui/SectionTitle"
+import { prisma } from "@/lib/prisma"
 
 type Kegiatan = {
   id: number
   judul: string
   deskripsi: string | null
   thumbnail: string | null
-  tanggal: string
+  tanggal: Date
   lokasi: string
 }
 
 async function getKegiatan(): Promise<Kegiatan[]> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/kegiatan`, { next: { revalidate: 60 } })
-  if (!res.ok) return []
-  return res.json()
+  return await prisma.kegiatan.findMany({
+    select: {
+      id: true,
+      judul: true,
+      deskripsi: true,
+      thumbnail: true,
+      tanggal: true,
+      lokasi: true,
+    },
+    orderBy: { tanggal: "desc" },
+  })
 }
 
 export default async function KegiatanPage() {

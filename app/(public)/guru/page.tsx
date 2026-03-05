@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronRight, BookOpen } from "lucide-react"
 import SectionTitle from "@/components/ui/SectionTitle"
+import { prisma } from "@/lib/prisma"
 
 type Guru = {
   id: number
@@ -13,10 +14,10 @@ type Guru = {
 }
 
 async function getGuru(): Promise<Guru[]> {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  const res = await fetch(`${base}/api/guru`, { next: { revalidate: 3600 } })
-  if (!res.ok) return []
-  return res.json()
+  return await prisma.guru.findMany({
+    select: { id: true, nama: true, jabatan: true, mapel: true, foto: true, urutan: true },
+    orderBy: { urutan: "asc" },
+  })
 }
 
 export default async function GuruPage() {
