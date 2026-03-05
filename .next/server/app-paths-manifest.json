@@ -1,18 +1,5 @@
 {
-  "/api/setting/route": "app/api/setting/route.js",
-  "/api/berita/route": "app/api/berita/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
   "/login/page": "app/login/page.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/admin/dashboard/route": "app/api/admin/dashboard/route.js",
-  "/api/admin/berita/route": "app/api/admin/berita/route.js",
-  "/api/admin/guru/route": "app/api/admin/guru/route.js",
-  "/(public)/profil/page": "app/(public)/profil/page.js",
-  "/(public)/berita/page": "app/(public)/berita/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/(public)/kegiatan/page": "app/(public)/kegiatan/page.js",
-  "/(public)/page": "app/(public)/page.js",
-  "/admin/berita/page": "app/admin/berita/page.js",
-  "/admin/kegiatan/page": "app/admin/kegiatan/page.js",
   "/admin/guru/page": "app/admin/guru/page.js"
 }
