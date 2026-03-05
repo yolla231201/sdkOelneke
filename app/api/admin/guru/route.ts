@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     })
 
     revalidatePath("/guru")  // ← tambah di sini, setelah create berhasil
-  revalidatePath("/")
+    revalidatePath("/")
 
     return NextResponse.json(guru, { status: 201 })
   } catch (error) {
@@ -117,7 +117,7 @@ export async function PUT(req: Request) {
     })
 
     revalidatePath("/guru")  // ← tambah di sini, setelah create berhasil
-  revalidatePath("/")
+    revalidatePath("/")
 
     return NextResponse.json(updated)
   } catch (error) {

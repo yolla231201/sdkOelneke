@@ -3,19 +3,17 @@ import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 
-
-if (!process.env.SUPABASE_URL) throw new Error("SUPABASE_URL is not defined")
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not defined")
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  { auth: { persistSession: false } }
-)
-
 const BUCKET = "assets_sdkOelneke"
 
+function getSupabase() {
+  const url = process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) throw new Error("Supabase env vars missing")
+  return createClient(url, key, { auth: { persistSession: false } })
+}
+
 async function uploadFile(file: File, folder: string): Promise<string> {
+  const supabase = getSupabase()
   const buffer = Buffer.from(await file.arrayBuffer())
   const filename = `${folder}/${Date.now()}-${file.name}`
 
@@ -32,7 +30,7 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData()
     const file = formData.get("file") as File | null
-    const fileType = formData.get("fileType") as string | null // "logo" | "heroImage"
+    const fileType = formData.get("fileType") as string | null
     const dataRaw = formData.get("data")
 
     if (!dataRaw) {
@@ -41,11 +39,9 @@ export async function POST(req: Request) {
 
     const data = JSON.parse(dataRaw as string)
 
-    // Pertahankan URL lama jika tidak ada file baru
     let logoUrl: string | null = data.logo?.trim() || null
     let heroImageUrl: string | null = data.heroImage?.trim() || null
 
-    // Upload file sesuai fileType
     if (file) {
       if (fileType === "logo") {
         logoUrl = await uploadFile(file, "logo")
@@ -54,7 +50,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Hapus field yang tidak ada di schema sebelum upsert
     const { id, updatedAt, ...rest } = data
 
     const settings = await prisma.settings.upsert({
@@ -73,7 +68,7 @@ export async function POST(req: Request) {
       },
     })
 
-    revalidatePath("/settings")  // ← tambah di sini, setelah create berhasil
+    revalidatePath("/settings")
     revalidatePath("/")
 
     return NextResponse.json(settings)
@@ -92,7 +87,7 @@ export async function GET() {
       where: { id: 1 },
     })
 
-    revalidatePath("/settings")  // ← tambah di sini, setelah create berhasil
+    revalidatePath("/settings")
     revalidatePath("/")
 
     return NextResponse.json(settings || {})
