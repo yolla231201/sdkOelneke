@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import Link from "next/link"
 import { ChevronRight, MapPin, Phone, Mail, Clock, Send } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/Card"
