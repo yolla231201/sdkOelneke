@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(ADMIN)
+  berita    Berita[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Berita {
+  id          Int        @id @default(autoincrement())
+  judul       String
+  slug        String     @unique
+  deskripsi   String?
+  konten      String     @db.Text
+  thumbnail   String?
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  
+  authorId    Int
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Guru {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  jabatan   String?
+  mapel     String?
+  urutan    Int      @default(0)
+  foto      String?
+  bio       String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Kegiatan {
+  id          Int      @id @default(autoincrement())
+  judul       String
+  deskripsi   String?
+  thumbnail   String?
+  tanggal     DateTime
+  lokasi      String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Settings {
+  id          Int      @id
+
+  schoolName  String
+  shortName   String?
+  tagline     String?
+  founded     String?
+  npsn        String?
+  akreditasi  String?
+  siswaAktif  String?
+  prestasi    String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  kodePos     String?
+
+  visi        String?  @db.Text
+  misi        String?  @db.Text
+  sejarah     String?  @db.Text
+
+  logo        String?
+  heroImage   String?   // ← tambah ini
+
+  facebook    String?
+  instagram   String?
+  youtube     String?
+  twitter     String?
+
+  updatedAt   DateTime @updatedAt
+}
