@@ -4,13 +4,20 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "dzcaauepftbhiorrjagh.supabase.co", // sudah ada sebelumnya
+        hostname: "dzcaauepftbhiorrjagh.supabase.co",
       },
       {
         protocol: "https",
-        hostname: "images.unsplash.com", // ← tambah ini
+        hostname: "*.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
+  },
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client", "prisma"],
   },
 }
 
