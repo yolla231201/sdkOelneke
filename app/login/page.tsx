@@ -1,18 +1,26 @@
-
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from 'next/link'
 import { GraduationCap, Lock, Mail, Eye } from 'lucide-react'
-import { theme } from '@/lib/data'
 
 export default function LoginPage() {
-
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [schoolName, setSchoolName] = useState("Admin Panel")
+
+  useEffect(() => {
+    fetch("/api/setting")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.shortName) setSchoolName(data.shortName)
+        else if (data.schoolName) setSchoolName(data.schoolName)
+      })
+      .catch(() => {})
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,9 +30,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       })
@@ -38,7 +44,6 @@ export default function LoginPage() {
       }
 
       window.location.href = "/admin/dashboard"
-
     } catch (err) {
       setError("Terjadi kesalahan")
     } finally {
@@ -48,23 +53,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] flex items-center justify-center p-6">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#FBBF24]/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-[#1E3A8A] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-blue-900/50">
             <GraduationCap className="w-9 h-9 text-white" />
           </div>
-          <h1 className="font-display font-extrabold text-2xl text-white">{theme.school.shortName}</h1>
+          <h1 className="font-display font-extrabold text-2xl text-white">{schoolName}</h1>
           <p className="text-slate-400 text-sm mt-1">Admin Panel</p>
         </div>
 
-        {/* Card */}
         <div className="bg-[#1e293b] rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
           <h2 className="font-display font-bold text-xl text-white mb-1">Masuk ke Dashboard</h2>
           <p className="text-slate-400 text-sm mb-6">Masukkan kredensial Anda untuk melanjutkan</p>
@@ -114,7 +116,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full mt-2 py-3 px-6 bg-[#1E3A8A] hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/30 active:scale-95"
             >
-              {loading ? "Memproses" : "Login"}
+              {loading ? "Memproses..." : "Login"}
             </button>
 
             {error && (
@@ -130,7 +132,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-600 mt-6">
-          © 2024 {theme.school.name}. Hak cipta dilindungi.
+          © 2024 {schoolName}. Hak cipta dilindungi.
         </p>
       </div>
     </div>
