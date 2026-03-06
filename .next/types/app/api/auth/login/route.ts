@@ -1,8 +1,8 @@
-// File: D:\website\school-website\app\api\admin\guru\route.ts
-import * as entry from '../../../../../../app/api/admin/guru/route.js'
+// File: D:\website\school-website\app\api\auth\login\route.ts
+import * as entry from '../../../../../../app/api/auth/login/route.js'
 import type { NextRequest } from 'next/server.js'
 
-type TEntry = typeof import('../../../../../../app/api/admin/guru/route.js')
+type TEntry = typeof import('../../../../../../app/api/auth/login/route.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{
