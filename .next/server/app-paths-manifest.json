@@ -1,9 +1,4 @@
 {
   "/login/page": "app/login/page.js",
-  "/api/setting/route": "app/api/setting/route.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/admin/dashboard/route": "app/api/admin/dashboard/route.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/(public)/page": "app/(public)/page.js"
+  "/admin/dashboard/page": "app/admin/dashboard/page.js"
 }
