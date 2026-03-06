@@ -18,6 +18,7 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ["@prisma/client", "prisma"],
+    runtime: "edge",
   },
 }
 
