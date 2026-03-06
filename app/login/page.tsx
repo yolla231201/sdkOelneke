@@ -1,16 +1,17 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import Link from 'next/link'
-import { GraduationCap, Lock, Mail, Eye } from 'lucide-react'
+import Image from 'next/image'
+import { GraduationCap, Lock, Mail, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [schoolName, setSchoolName] = useState("Admin Panel")
+  const [logo, setLogo] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/setting")
@@ -18,6 +19,7 @@ export default function LoginPage() {
       .then((data) => {
         if (data.shortName) setSchoolName(data.shortName)
         else if (data.schoolName) setSchoolName(data.schoolName)
+        if (data.logo) setLogo(data.logo)
       })
       .catch(() => {})
   }, [])
@@ -44,7 +46,7 @@ export default function LoginPage() {
       }
 
       window.location.href = "/admin/dashboard"
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan")
     } finally {
       setLoading(false)
@@ -60,8 +62,18 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#1E3A8A] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-blue-900/50">
-            <GraduationCap className="w-9 h-9 text-white" />
+          <div className="w-16 h-16 bg-[#1E3A8A] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-blue-900/50 overflow-hidden">
+            {logo ? (
+              <Image
+                src={logo}
+                alt={schoolName}
+                width={64}
+                height={64}
+                className="w-full h-full object-contain p-1"
+              />
+            ) : (
+              <GraduationCap className="w-9 h-9 text-white" />
+            )}
           </div>
           <h1 className="font-display font-extrabold text-2xl text-white">{schoolName}</h1>
           <p className="text-slate-400 text-sm mt-1">Admin Panel</p>
@@ -81,6 +93,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@sekolah.sch.id"
+                  required
                   className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 text-slate-200 placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all"
                 />
               </div>
@@ -91,36 +104,33 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full pl-10 pr-10 py-3 bg-slate-700/50 border border-slate-600 text-slate-200 placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
                 />
-                <button type="button" className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-                  <Eye className="w-4 h-4" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-blue-500/40" />
-                <span className="text-xs text-slate-400">Ingat saya</span>
-              </label>
-              <a href="#" className="text-xs text-blue-400 hover:text-blue-300">Lupa password?</a>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-6 bg-[#1E3A8A] hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/30 active:scale-95"
+              className="w-full mt-2 py-3 px-6 bg-[#1E3A8A] hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all duration-300 hover:shadow-lg hover:shadow-blue-900/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Memproses..." : "Login"}
             </button>
 
             {error && (
-              <p className="text-red-400 text-sm text-right">{error}</p>
+              <p className="text-red-400 text-sm text-center">{error}</p>
             )}
           </form>
 
@@ -132,7 +142,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-600 mt-6">
-          © 2024 {schoolName}. Hak cipta dilindungi.
+          © 2026 {schoolName}. Hak cipta dilindungi.
         </p>
       </div>
     </div>
